@@ -8,7 +8,11 @@
     <h1>All Pages</h1>
 
     <ul>
+        <!-- for all entries in entries folder -->
         {% for entry in entries %}
+        <!-- title=entry is passing to urls.py, the variable entry, to the <str:title> -->
+        <!-- 'entry' is referring to the path in urls.py namede entry-->
+
             <li><a href="{% url 'entry' title=entry %}">{{ entry }}</a></li>
         {% endfor %}
     </ul>
