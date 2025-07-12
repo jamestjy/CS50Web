@@ -34,15 +34,18 @@ def page(request, title):
 def search(request):
     search_query = request.GET.get("q", "")
     search_query = search_query.strip().lower()
+    # search query matches entry exactly
+    for entry in util.list_entries():
+        if re.fullmatch(search_query, f"{entry}", flags=re.IGNORECASE):
+            return render(request, "encyclopedia/entry.html", {
+                "content": convert_md_to_html(entry),
+                "title": entry.lower()
+            })
+        
+    # search query matches entry as a substring
     matches = [entry for entry in util.list_entries() if re.search(search_query, entry.lower())]
-    if len(matches) == 1:
-        # if search_query matches an entry exactly, render that one entry.html page
-        return render(request, "encyclopedia/entry.html", {
-            "content": convert_md_to_html(matches[0])
-        })
 
-    elif len(matches) == 0:
-        # if no matches, return a 404 page
+    if len(matches) == 0:
         return render(request, "encyclopedia/404.html", {
             "title": search_query
         }, status=404)
