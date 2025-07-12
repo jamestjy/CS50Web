@@ -17,12 +17,12 @@ def index(request):
     })
 
 def page(request, title):
+    # user may type in url directly
     content = convert_md_to_html(title.lower()) #used lower() since title=entry from index.html contains caps
     if content is None:
-        # "title": title.lower()" passes in the lowercase title of the url
-        # to 404.html template, as variable called title(key)
+        
         return render(request, "encyclopedia/404.html", {
-            "title": title.lower()
+            "error_message": f"404 - '{title}' Not Found"
         }, status=404)
     
     else:
@@ -47,7 +47,7 @@ def search(request):
 
     if len(matches) == 0:
         return render(request, "encyclopedia/404.html", {
-            "title": search_query
+            "error_message": f"404 - {search_query} Not Found"
         }, status=404)
 
     else:
@@ -57,5 +57,35 @@ def search(request):
         return render(request, "encyclopedia/search_results.html", {
             "matches": matches, "search_query": search_query
         })
+    
+def create(request):
+    # if i am trying to save my entry
+    if request.method == "POST":
+        title = request.POST.get("newpage-title")
+        content = request.POST.get("newpage-content")
+        # check if title exists, regardless of case
+        title = title.strip().lower()
+        for entry in util.list_entries():
+            if entry.lower() == title:
+                return render(request, "encyclopedia/404.html", {
+                    "error_message": f"404 - {title} Already Exists"
+                }, status=404)
+            
+        # if title doesnt exist, save the user's entry
+        util.save_entry(title, content)
+        return render(request, "encyclopedia/entry.html", {
+            "content": convert_md_to_html(title),
+            "title": title
+        })
+
+        
+    # if i just want to GET the create page
+    else:
+        return render(request, "encyclopedia/create.html")
            
+#USED TO TEST SEARCH()
+def test(request):
+    print("🔍 SEARCH VIEW HIT")  # Add this
+    query = request.GET.get("q", "")
+    print("🧠 QUERY =", query)  # Add this line
     
