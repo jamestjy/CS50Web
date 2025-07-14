@@ -36,3 +36,31 @@ textarea {
 .sidebar h2 {
     margin-top: 5px;
 }
+
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.new-title > label,
+.new-content > label,
+.edit-content > label {
+  width: 80px;
+}
+
+.new-title, .new-content, .edit-content {
+  display: flex;
+  align-items: flex-start;
+}
+
+.button-wrapper {
+  margin-left: 80px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+#submit {
+  width: 100px;
+}

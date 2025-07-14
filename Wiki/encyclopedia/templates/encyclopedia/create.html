@@ -7,7 +7,7 @@
 {% block body %}
     <h1>Create New Page</h1>
 
-    <form action="{% url 'create' %}"method="POST">
+    <form action="{% url 'create' %}" method="POST">
         {% csrf_token %}
         <div class="new-title">
             <label for="newpage-title">Title:</label>
@@ -17,6 +17,7 @@
             <label for="newpage-content">Content:</label>
             <textarea id="newpage-content" name="newpage-content" rows="10" cols="50" placeholder="Enter Markdown format"></textarea>
         </div>
-        <button type="submit">Create Page</button>
+       <div class="button-wrapper">
+            <button id="submit" type="submit">Create Page</button></div>
     </form>
 {% endblock %}
