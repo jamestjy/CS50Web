@@ -8,4 +8,7 @@
 
 {% block body %}
     {{ content|safe }}
+
+    <!-- edit entry's MD content -->
+    <a href="{% url 'edit' title=title %}">Edit Page</a>
 {% endblock %}

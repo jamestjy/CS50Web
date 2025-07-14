@@ -1,7 +1,8 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from markdown2 import Markdown
 from . import util
 import re
+import random
 
 def convert_md_to_html(title):
     markdowner = Markdown()
@@ -77,11 +78,34 @@ def create(request):
             "content": convert_md_to_html(title),
             "title": title
         })
-
         
     # if i just want to GET the create page
     else:
         return render(request, "encyclopedia/create.html")
+    
+def edit(request, title):
+    if request.method == "POST":
+        # if trying to save the edited entry
+        content = request.POST.get("edit-markdown")
+        util.save_entry(title, content)
+        return redirect("entry", title=title.lower())
+
+    else:
+        if util.get_entry(title) is not None:
+            # render the edit page of the current entry
+            return render(request, "encyclopedia/edit.html", {
+                "title": title.lower(), "md_content": util.get_entry(title)
+            })
+        else:
+            return render(request, "encyclopedia/404.html", {
+                "error_message": f"404 - Unable to edit '{title}' as it does not exist."
+            }, status=404)
+
+def random(request):
+
+    
+
+
            
 #USED TO TEST SEARCH()
 def test(request):
