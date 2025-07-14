@@ -101,8 +101,15 @@ def edit(request, title):
                 "error_message": f"404 - Unable to edit '{title}' as it does not exist."
             }, status=404)
 
-def random(request):
-
+def random_page(request):
+    if not util.list_entries():
+        return render(request, "encyclopedia/404.html", {
+            "error_message": "404 - No entries available to display."
+        }, status=404)
+    else:
+        random_entry = random.choice(util.list_entries())
+        
+        return redirect("entry", title=random_entry)
     
 
 
