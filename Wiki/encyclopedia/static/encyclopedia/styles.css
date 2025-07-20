@@ -17,6 +17,7 @@ textarea {
     width: 80%;
 }
 
+
 .main {
     padding: 10px;
 }
@@ -55,10 +56,20 @@ form {
   align-items: flex-start;
 }
 
+#newpage-content {
+    height: 75vh;
+}
+
+#edit-markdown {
+    height: 90vh;
+}
+
 .button-wrapper {
   margin-left: 80px;
   display: flex;
   justify-content: flex-start;
+  align-items: center;
+  gap: 1rem;
 }
 
 #submit {
