@@ -2,7 +2,7 @@
 
 Project 1 of CS50 Web
 
-I learnt the basics of Django, such as the hoow general structure of a django site operates, how to manipulate urls, views,
+I learnt the basics of Django, such as the how general structure of a django site operates, how to manipulate urls, views,
 and how to render the corresponding templates, by passing in context.
 
 I also learnt how to use forms in Django, understanding the action and method attributes, the 2 most common ones being GET and POST,
