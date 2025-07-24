@@ -2,6 +2,8 @@
 
 Project 1 of CS50 Web
 
+This projects involves using Django to simulate a wikipedia page, with functions to create/edit pages, search for pages, choose a random page, and list 404 errors when appropriate
+
 I learnt the basics of Django, such as the how general structure of a django site operates, how to manipulate urls, views,
 and how to render the corresponding templates, by passing in context.
 
