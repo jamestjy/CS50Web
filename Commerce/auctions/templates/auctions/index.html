@@ -3,5 +3,25 @@
 {% block body %}
     <h2>Active Listings</h2>
     
-    TODO
+    {% for listing in listings %}
+        <div class="listing">
+            <h3><a href="{% url 'listing' listing_id=listing.id %}">{{ listing.title }}</a></h3>
+            <p>{{ listing.description }}</p>
+            <p><strong>Price:</strong> ${{ listing.starting_bid }}</p>
+            {% if listing.category %}
+                <p><strong>Category:</strong> {{ listing.get_category_display }}</p>
+                <!-- {{ listing.get_category_display }} is a way to get the human-readable label instead of
+                  what is stored in the database-->
+            {% endif %}
+            {% if listing.image %}
+            <!-- if there is an image -->
+                <img src="{{ listing.image }}" alt="{{ listing.title }}" class="img-thumbnail">
+            {% endif %}
+        </div>
+
+    {% empty %}
+    <!-- if no listings-->
+        <p>No active listings available.</p>
+    {% endfor %}
+
 {% endblock %}
