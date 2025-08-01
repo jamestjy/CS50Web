@@ -12,7 +12,8 @@ def index(request):
     # get only active listings
     listings = Listings.objects.filter(is_active=True)
     return render(request, "auctions/index.html", {
-        "listings": listings})
+        "listings": listings,
+        "user": request.user})
 
 
 def login_view(request):
@@ -110,5 +111,25 @@ def listing(request, listing_id):
                       status=404)
     
     return render(request, "auctions/listing.html", {
-        "listing": listing
+        "listing": listing,
+        "user": request.user  # can just get user this way in django directly
     })
+
+
+@login_required
+def add_to_watchlist(request, listing_id):
+    listing = Listings.objects.get(id=listing_id)
+    listing.add_to_watchlist(request.user)
+    return redirect("listing", listing_id=listing.id)
+
+@login_required
+def remove_from_watchlist(request, listing_id):
+    listing = Listings.objects.get(id=listing_id)
+    listing.remove_from_watchlist(request.user)
+    return redirect("listing", listing_id=listing.id)
+
+@login_required
+def show_watchlist(request):
+    return render
+
+    

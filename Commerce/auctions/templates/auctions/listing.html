@@ -11,4 +11,12 @@
     {% if listing.image %}
         <img src="{{ listing.image }}" alt="{{ listing.title }}" class="img-thumbnail">
     {% endif %}
+    
+    {% if user.is_authenticated %}
+        {% if user not in listing.watchers.all %}
+            <a href="{% url 'add_to_watchlist' listing_id=listing.id %}">Add to Watchlist</a>
+        {% else %}
+            <a href="{% url 'remove_from_watchlist' listing_id=listing.id %}">Remove from Watchlist</a>
+        {% endif %}
+    {% endif %}
 {% endblock %}

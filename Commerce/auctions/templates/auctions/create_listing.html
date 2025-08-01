@@ -2,6 +2,9 @@
 
 {% block body %}
     <h2>Create a New Listing</h2>
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
 
     <form action="{% url 'create_listing' %}" method="post">
         {% csrf_token %}
