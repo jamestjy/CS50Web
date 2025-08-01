@@ -130,6 +130,17 @@ def remove_from_watchlist(request, listing_id):
 
 @login_required
 def show_watchlist(request):
-    return render
+    watched_items = request.user.watchlist.all()
+    return render(request, "auctions/watchlist.html", {"watched_items": watched_items,
+                                                       "user": request.user})
 
-    
+def show_categories(request):
+    # can only show existing categories
+    used_categories = Listings.objects.values_list('category', flat=True).distinct()
+
+    return render(request, "auctions/categories.html", {"categories": used_categories})
+
+
+        
+
+
