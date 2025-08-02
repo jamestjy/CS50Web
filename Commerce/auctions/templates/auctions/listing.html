@@ -1,5 +1,7 @@
 {% extends "auctions/layout.html" %}
 
+
+
 {% block body %}
     <h2>{{ listing.title }}</h2>
     <p>{{ listing.description }}</p>
@@ -13,6 +15,21 @@
     {% endif %}
     
     {% if user.is_authenticated %}
+        <form action="{% url 'bid' listing_id=listing.id %}" method="POST">
+            {% csrf_token %}
+            <details {% if messages %}open{% endif %}>
+                <summary>
+                    Place a bid
+                </summary>
+                {% if messages %}
+                    {% with message=messages.0 %}
+                        <p>{{ message }}</p>
+                    {% endwith %}
+                {% endif %}
+                <input type="number" name="bid_amount" placeholder="Enter bid amount" step="0.01" required>
+                <button type="submit">Submit bid</button>
+            </details>
+        </form>
         {% if user not in listing.watchers.all %}
             <a href="{% url 'add_to_watchlist' listing_id=listing.id %}">Add to Watchlist</a>
         {% else %}

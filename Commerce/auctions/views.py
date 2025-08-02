@@ -3,9 +3,11 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.contrib import messages
 
-from .models import User, Listings
+from .models import User, Listings, Bids
 from django.contrib.auth.decorators import login_required
+from decimal import Decimal, InvalidOperation
 
 
 def index(request):
@@ -73,9 +75,9 @@ def register(request):
 def create_listing(request):
     categories = Listings.CATEGORIES
     if request.method == "POST":
-        title = request.POST["title"]
-        description = request.POST["description"]
-        starting_bid = request.POST["starting_bid"]
+        title = request.POST.get["title"]
+        description = request.POST.get["description"]
+        starting_bid = Decimal(request.POST.get["starting_bid"])
         image = request.POST.get("image", "")
         category = request.POST.get("category", "")
 
@@ -147,8 +149,52 @@ def show_category_listings(request, category):
     listings = list(Listings.objects.filter(category=category)) # dont use .get() since get expects only 1 object returned
     # remember the variable "category" is currently the human readable label, must convert
     # list() is used to convery QuerySet into a list
+
+    if not listings: # if no listings under such category
+        return render(request, "auctions/404.html", {"error_message": f"No listings under {category}"})
+    
     return render(request, "auctions/category_listings.html", {"listings": listings, 
                                                              "category": category})
+
+@login_required
+def bid(request, listing_id):
+
+    listing = Listings.objects.get(id=listing_id)
+    if request.method == "POST":
+        try:
+            bid_amount = Decimal(request.POST.get("bid_amount"))
+        except (InvalidOperation, TypeError):
+            # if bid format is invalid
+            return render(request, "auctions/listing.html", {
+                "listing": listing,
+                "user": request.user,
+                "error_message": "Invalid bid amount"
+                })
+            
+
+        # get current highest bid
+        highest_bid = listing.starting_bid
+
+        if bid_amount > highest_bid:
+            # set new price
+            listing.starting_bid = bid_amount
+            listing.save()
+            # create new bid instance
+            Bids.objects.create(
+                listing = listing,
+                amount = bid_amount,
+                bidder = request.user
+            )
+            messages.success(request, "Bid placed successfully")
+
+        else:
+            messages.error(request, "Bid amount must be higher than current price")
+            
+        return redirect('listing', listing_id=listing.id)
+
+
+        
+        
 
 
         

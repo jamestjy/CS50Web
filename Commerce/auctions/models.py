@@ -39,3 +39,10 @@ class Listings(models.Model):
         self.watchers.remove(user)
 
 
+class Bids(models.Model):
+    listing = models.ForeignKey(Listings, on_delete=models.CASCADE, related_name="bids")
+    # bids table has a foreign key pointing to each listing
+    # 1 listing can have many bids, 1 bid only points to 1 listing
+    amount = models.DecimalField(decimal_places=2, max_digits=10, blank=False)
+    bidder = models.ForeignKey(User, blank=False, on_delete=models.CASCADE, related_name="bids")
+    # 1 user can have many bids, 1 bid only points to 1 user
