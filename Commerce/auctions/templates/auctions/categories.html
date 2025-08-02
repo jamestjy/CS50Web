@@ -3,8 +3,8 @@
 {% block body %}
     <h2>All Categories</h2>
     <ul>
-    {% for category in categories %}
-        <li><a href="{% url %}">{{ category }}</a></li>
+    {% for key, label in categories %}
+        <li><a href="{% url 'category_listings' category=key %}">{{ label }}</a></li>
     {% endfor %}
     </ul>
 {% endblock %}

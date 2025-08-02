@@ -137,8 +137,18 @@ def show_watchlist(request):
 def show_categories(request):
     # can only show existing categories
     used_categories = Listings.objects.values_list('category', flat=True).distinct()
+    category_map = dict(Listings.CATEGORIES) # must pass as human-readable label instead of what is stored in database
 
-    return render(request, "auctions/categories.html", {"categories": used_categories})
+    categories_with_labels = [(key, category_map[key]) for key in used_categories]
+
+    return render(request, "auctions/categories.html", {"categories": categories_with_labels})
+
+def show_category_listings(request, category):
+    listings = list(Listings.objects.filter(category=category)) # dont use .get() since get expects only 1 object returned
+    # remember the variable "category" is currently the human readable label, must convert
+    # list() is used to convery QuerySet into a list
+    return render(request, "auctions/category_listings.html", {"listings": listings, 
+                                                             "category": category})
 
 
         
