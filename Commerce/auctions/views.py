@@ -5,14 +5,14 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
 
-from .models import User, Listings, Bids, Comments
+from .models import User, Listing, Bid, Comment
 from django.contrib.auth.decorators import login_required
 from decimal import Decimal, InvalidOperation
 
 
 def index(request):
     # get only active listings
-    listings = Listings.objects.filter(is_active=True)
+    listings = Listing.objects.filter(is_active=True)
     return render(request, "auctions/index.html", {
         "listings": listings,
         "user": request.user})
@@ -73,7 +73,7 @@ def register(request):
     
 @login_required
 def create_listing(request):
-    categories = Listings.CATEGORIES
+    categories = Listing.CATEGORIES
     if request.method == "POST":
         title = request.POST.get("title")
         description = request.POST.get("description")
@@ -89,7 +89,7 @@ def create_listing(request):
             })
         
         # Create a new listing
-        listing = Listings(
+        listing = Listing(
             title=title,
             description=description,
             starting_bid=starting_bid,
@@ -107,8 +107,8 @@ def create_listing(request):
 
 def listing(request, listing_id):
     try:
-        listing = Listings.objects.get(id=listing_id)
-    except Listings.DoesNotExist:
+        listing = Listing.objects.get(id=listing_id)
+    except Listing.DoesNotExist:
         # if listing does not exist, return a 404 error
         return render(request, "auctions/404.html", {"error_message": "Listing does not exist"}, 
                       status=404)
@@ -119,7 +119,7 @@ def listing(request, listing_id):
         return render(request, "auctions/listing.html", {
             "listing": listing,
             "user": request.user, # can just get user this way in django directly
-            "comments": Comments.objects.filter(listing=listing)
+            "comments": Comment.objects.filter(listing=listing)
     }) 
     else:
         if highest_bid: # if auction closed and there is winner
@@ -127,13 +127,13 @@ def listing(request, listing_id):
                 "listing": listing,
                 "user": request.user,
                 "winner": highest_bid.bidder,
-                "comments": Comments.objects.filter(listing=listing)
+                "comments": Comment.objects.filter(listing=listing)
         })
         else: # if auction closed and there is no winner
             return render(request, "auctions/listing.html", {
             "listing": listing,
             "user": request.user,
-            "comments": Comments.objects.filter(listing=listing)})
+            "comments": Comment.objects.filter(listing=listing)})
     
 
 
@@ -142,13 +142,13 @@ def listing(request, listing_id):
 
 @login_required
 def add_to_watchlist(request, listing_id):
-    listing = Listings.objects.get(id=listing_id)
+    listing = Listing.objects.get(id=listing_id)
     listing.add_to_watchlist(request.user)
     return redirect("listing", listing_id=listing.id)
 
 @login_required
 def remove_from_watchlist(request, listing_id):
-    listing = Listings.objects.get(id=listing_id)
+    listing = Listing.objects.get(id=listing_id)
     listing.remove_from_watchlist(request.user)
     return redirect("listing", listing_id=listing.id)
 
@@ -160,15 +160,15 @@ def show_watchlist(request):
 
 def show_categories(request):
     # can only show existing categories
-    used_categories = Listings.objects.values_list('category', flat=True).distinct()
-    category_map = dict(Listings.CATEGORIES) # must pass as human-readable label instead of what is stored in database
+    used_categories = Listing.objects.values_list('category', flat=True).distinct()
+    category_map = dict(Listing.CATEGORIES) # must pass as human-readable label instead of what is stored in database
 
     categories_with_labels = [(key, category_map[key]) for key in used_categories]
 
     return render(request, "auctions/categories.html", {"categories": categories_with_labels})
 
 def show_category_listings(request, category):
-    listings = list(Listings.objects.filter(category=category)) # dont use .get() since get expects only 1 object returned
+    listings = list(Listing.objects.filter(category=category)) # dont use .get() since get expects only 1 object returned
     # remember the variable "category" is currently the human readable label, must convert
     # list() is used to convery QuerySet into a list
 
@@ -181,7 +181,7 @@ def show_category_listings(request, category):
 @login_required
 def bid(request, listing_id):
 
-    listing = Listings.objects.get(id=listing_id)
+    listing = Listing.objects.get(id=listing_id)
     if request.method == "POST":
         try:
             bid_amount = Decimal(request.POST.get("bid_amount"))
@@ -191,7 +191,7 @@ def bid(request, listing_id):
                 "listing": listing,
                 "user": request.user,
                 "error_message": "Invalid bid amount",
-                "comments": Comments.objects.filter(listing=listing)
+                "comments": Comment.objects.filter(listing=listing)
                 })
             
 
@@ -203,7 +203,7 @@ def bid(request, listing_id):
             listing.starting_bid = bid_amount
             listing.save()
             # create new bid instance
-            Bids.objects.create(
+            Bid.objects.create(
                 listing = listing,
                 amount = bid_amount,
                 bidder = request.user
@@ -217,27 +217,20 @@ def bid(request, listing_id):
 
 @login_required
 def close_listing(request, listing_id):
-    listing = Listings.objects.get(id=listing_id)
+    listing = Listing.objects.get(id=listing_id)
     if request.method == "POST":
         if request.user == listing.owner:
             listing.is_active = False
             listing.save()
 
-            highest_bid = listing.bids.order_by('amount').last()
-            # need to account if no bids are placed
-            if highest_bid:
-                messages.success(request, f"Auction closed! Winner: {highest_bid.bidder.username} with ${highest_bid.amount}.")
-            else:
-                messages.info(request, "Auction closed! No bids were placed.")
-
     return redirect('listing', listing_id=listing.id)
 
 @login_required
 def comment(request, listing_id):
-    listing = Listings.objects.get(id=listing_id)
+    listing = Listing.objects.get(id=listing_id)
     if request.method == "POST":
         comment = request.POST.get("comment")
-        Comments.objects.create(
+        Comment.objects.create(
             comment=comment,
             listing=listing,
             commenter=request.user

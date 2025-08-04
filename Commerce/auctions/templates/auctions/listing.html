@@ -36,9 +36,13 @@
                     Place a bid
                 </summary>
                 {% if messages %}
-                    {% with message=messages.0 %}
-                        <p>{{ message }}</p>
-                    {% endwith %}
+                    {% for message in messages %}
+                        {% if "error" in message.tags %}
+                            <p>{{ message }}</p>
+                        {% elif "success" in message.tags %}
+                            <p>{{ message }}</p>
+                        {% endif %}
+                    {% endfor %}
                 {% endif %}
                 <input type="number" name="bid_amount" placeholder="Enter bid amount" step="0.01" required>
                 <button type="submit">Submit bid</button>
