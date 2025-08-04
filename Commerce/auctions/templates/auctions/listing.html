@@ -13,11 +13,25 @@
     {% if listing.image %}
         <img src="{{ listing.image }}" alt="{{ listing.title }}" class="img-thumbnail">
     {% endif %}
+
+    <p>Owner: <strong>{{ listing.owner.username }}</strong></p>
+
+    {% if not listing.is_active %} <!-- if auction is closed -->
+        {% if not winner %} <!-- if no bids were placed -->
+            <p>Auction closed. No bids were placed</p>
+        {% endif %}
+        {% if winner == user and user.is_authenticated %} <!-- if current user won -->
+            <p>You won this auction!</p>
+        {% else %} <!-- if someone else won-->
+            <p>Auction won by {{ winner.username }}</p>
+        {% endif %}
+    {% endif %}
     
-    {% if user.is_authenticated %}
+    {% if user.is_authenticated and listing.is_active %} <!-- if auction is open -->
+        {% if user != listing.owner %} <!-- place bid if not owner -->
         <form action="{% url 'bid' listing_id=listing.id %}" method="POST">
             {% csrf_token %}
-            <details {% if messages %}open{% endif %}>
+            <details {% if messages %}open{% endif %}> <!-- expandable section to place bid -->
                 <summary>
                     Place a bid
                 </summary>
@@ -30,10 +44,35 @@
                 <button type="submit">Submit bid</button>
             </details>
         </form>
+        {% endif %}
+        <form action="{% url 'comment' listing_id=listing.id %}" method="POST">
+
+            {% csrf_token %}
+            <label for="comment">Add a comment:</label>
+            <textarea id="comment" name="comment" placeholder="Input comments here"></textarea>
+            <button type="submit">Upload comment</button>
+        </form>
         {% if user not in listing.watchers.all %}
             <a href="{% url 'add_to_watchlist' listing_id=listing.id %}">Add to Watchlist</a>
         {% else %}
             <a href="{% url 'remove_from_watchlist' listing_id=listing.id %}">Remove from Watchlist</a>
         {% endif %}
+
+        {% if user == listing.owner %} <!-- close auction if owner -->
+            <form action="{% url 'close_listing' listing_id=listing.id %}" method="POST">
+                {% csrf_token %}
+                <button type="submit">Close Auction</button>
+            </form>
+        {% endif %}
+
+            
     {% endif %}
+
+    <h3>View all comments</h3>
+    <ul>
+        {% for comment in comments %}
+        <li>{{ comment.commenter }} - {{ comment.comment }}</li>
+        {% endfor %}
+    </ul>
+
 {% endblock %}

@@ -28,6 +28,7 @@ class Listings(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORIES, blank=True) # optional
     is_active = models.BooleanField(default=True, null=False) # cannot be null in database
     watchers = models.ManyToManyField(User, blank=True, related_name='watchlist')
+    owner = models.ForeignKey(User, blank=False, related_name="listings", on_delete=models.CASCADE, null=True) # rmb to change null later
    
     def __str__(self):
         return f"{self.title} - {self.starting_bid}"
@@ -46,3 +47,8 @@ class Bids(models.Model):
     amount = models.DecimalField(decimal_places=2, max_digits=10, blank=False)
     bidder = models.ForeignKey(User, blank=False, on_delete=models.CASCADE, related_name="bids")
     # 1 user can have many bids, 1 bid only points to 1 user
+
+class Comments(models.Model):
+    listing = models.ForeignKey(Listings, on_delete=models.CASCADE, related_name="comments")
+    comment = models.TextField(blank=True)
+    commenter = models.ForeignKey(User, blank=False, on_delete=models.CASCADE, related_name="comments")

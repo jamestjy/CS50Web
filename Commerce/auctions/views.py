@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
 
-from .models import User, Listings, Bids
+from .models import User, Listings, Bids, Comments
 from django.contrib.auth.decorators import login_required
 from decimal import Decimal, InvalidOperation
 
@@ -75,9 +75,9 @@ def register(request):
 def create_listing(request):
     categories = Listings.CATEGORIES
     if request.method == "POST":
-        title = request.POST.get["title"]
-        description = request.POST.get["description"]
-        starting_bid = Decimal(request.POST.get["starting_bid"])
+        title = request.POST.get("title")
+        description = request.POST.get("description")
+        starting_bid = Decimal(request.POST.get("starting_bid"))
         image = request.POST.get("image", "")
         category = request.POST.get("category", "")
 
@@ -94,7 +94,8 @@ def create_listing(request):
             description=description,
             starting_bid=starting_bid,
             image=image,
-            category=category
+            category=category,
+            owner=request.user
         )
 
         listing.save()
@@ -112,10 +113,31 @@ def listing(request, listing_id):
         return render(request, "auctions/404.html", {"error_message": "Listing does not exist"}, 
                       status=404)
     
-    return render(request, "auctions/listing.html", {
-        "listing": listing,
-        "user": request.user  # can just get user this way in django directly
-    })
+    highest_bid = listing.bids.order_by('amount').last()
+    
+    if listing.is_active:
+        return render(request, "auctions/listing.html", {
+            "listing": listing,
+            "user": request.user, # can just get user this way in django directly
+            "comments": Comments.objects.filter(listing=listing)
+    }) 
+    else:
+        if highest_bid: # if auction closed and there is winner
+            return render(request, "auctions/listing.html", {
+                "listing": listing,
+                "user": request.user,
+                "winner": highest_bid.bidder,
+                "comments": Comments.objects.filter(listing=listing)
+        })
+        else: # if auction closed and there is no winner
+            return render(request, "auctions/listing.html", {
+            "listing": listing,
+            "user": request.user,
+            "comments": Comments.objects.filter(listing=listing)})
+    
+
+
+
 
 
 @login_required
@@ -168,7 +190,8 @@ def bid(request, listing_id):
             return render(request, "auctions/listing.html", {
                 "listing": listing,
                 "user": request.user,
-                "error_message": "Invalid bid amount"
+                "error_message": "Invalid bid amount",
+                "comments": Comments.objects.filter(listing=listing)
                 })
             
 
@@ -191,6 +214,39 @@ def bid(request, listing_id):
             messages.error(request, "Bid amount must be higher than current price")
             
         return redirect('listing', listing_id=listing.id)
+
+@login_required
+def close_listing(request, listing_id):
+    listing = Listings.objects.get(id=listing_id)
+    if request.method == "POST":
+        if request.user == listing.owner:
+            listing.is_active = False
+            listing.save()
+
+            highest_bid = listing.bids.order_by('amount').last()
+            # need to account if no bids are placed
+            if highest_bid:
+                messages.success(request, f"Auction closed! Winner: {highest_bid.bidder.username} with ${highest_bid.amount}.")
+            else:
+                messages.info(request, "Auction closed! No bids were placed.")
+
+    return redirect('listing', listing_id=listing.id)
+
+@login_required
+def comment(request, listing_id):
+    listing = Listings.objects.get(id=listing_id)
+    if request.method == "POST":
+        comment = request.POST.get("comment")
+        Comments.objects.create(
+            comment=comment,
+            listing=listing,
+            commenter=request.user
+        )
+
+        return redirect('listing', listing_id=listing.id)
+                            
+
+
 
 
         
