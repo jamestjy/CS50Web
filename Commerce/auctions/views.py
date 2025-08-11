@@ -82,9 +82,9 @@ def create_listing(request):
         category = request.POST.get("category", "")
 
         # validate that required fields are filled
-        if not title or not description or not starting_bid:
+        if not title or not description or not starting_bid or not image:
             return render(request, "auctions/create_listing.html", {
-                "message": "Title, description, and starting bid are required.",
+                "message": "Title, description, image and starting bid are required.",
                 "categories": categories
             })
         
@@ -208,10 +208,10 @@ def bid(request, listing_id):
                 amount = bid_amount,
                 bidder = request.user
             )
-            messages.success(request, "Bid placed successfully")
+            messages.success(request, "Bid placed successfully", extra_tags='successful_bid')
 
         else:
-            messages.error(request, "Bid amount must be higher than current price")
+            messages.error(request, "Bid amount must be higher than current price", extra_tags='failed_bid')
             
         return redirect('listing', listing_id=listing.id)
 
@@ -230,6 +230,10 @@ def comment(request, listing_id):
     listing = Listing.objects.get(id=listing_id)
     if request.method == "POST":
         comment = request.POST.get("comment")
+        if not comment or comment.strip() == "":
+            messages.error(request, "Comment cannot be empty", extra_tags='empty_comment')
+            return redirect('listing', listing_id=listing.id)
+        
         Comment.objects.create(
             comment=comment,
             listing=listing,

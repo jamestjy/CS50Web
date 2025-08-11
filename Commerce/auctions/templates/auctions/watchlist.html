@@ -7,23 +7,28 @@
         <p>No listings added to watchlist</p>
 
     {% else %}
-
+        <div class="listing-grid">
         {% for listing in watched_items %}
             <div class="listing">
-            <h3><a href="{% url 'listing' listing_id=listing.id %}">{{ listing.title }}</a></h3>
-            <p>{{ listing.description }}</p>
-            <p><strong>Price:</strong> ${{ listing.starting_bid }}</p>
-            {% if listing.category %}
-                <p><strong>Category:</strong> {{ listing.get_category_display }}</p>
+                {% if listing.image %}
+                <div class="index-img-div">
+                    <img class="index-image" src="{{ listing.image }}" alt="{{ listing.title }}" class="img-thumbnail">
+                </div>
+                {% endif %}
+                <div class="index-text-div">
+                <h3 class="index-title"><a href="{% url 'listing' listing_id=listing.id %}">{{ listing.title }}</a></h3>
                 
-            {% endif %}
-            {% if listing.image %}
+                <p><strong>Price:</strong> ${{ listing.starting_bid }}</p>
+                {% if listing.category %}
+                    <p><strong>Category:</strong> {{ listing.get_category_display }}</p>
+                    
+                {% endif %}
+                <p>{{ listing.description }}</p>
+                </div>
             
-                <img src="{{ listing.image }}" alt="{{ listing.title }}" class="img-thumbnail">
-            {% endif %}
-        </div>
+            </div>
         {% endfor %}
-
+        </div>
     {% endif %}
 
 

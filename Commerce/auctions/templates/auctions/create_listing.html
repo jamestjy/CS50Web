@@ -19,16 +19,16 @@
             <input class="form-control" type="number" step="0.01" name="starting_bid" placeholder="Starting Bid" required>
         </div>
         <div class="form-group">
-            <input class="form-control" type="url" name="image" placeholder="Image URL (optional)">
+            <input class="form-control" type="url" name="image" placeholder="Image URL" required>
         </div>
         <div class="form-group">
-            <label for="choose_category">Choose a category (optional)</label>"
+            <label for="choose_category">Choose a category (optional)</label>
             <select class="form-control" name="category">
                 {% for value, label in categories %}
                     <option value="{{ value }}">{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
-        <button type="submit">Create</button>
+        <button class="btn btn-primary" type="submit">Create</button>
         </form>
 {% endblock %}

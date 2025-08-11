@@ -8,10 +8,12 @@
     <p><strong>Price:</strong> ${{ listing.starting_bid }}</p>
     {% if listing.category %}
         <p><strong>Category:</strong> {{ listing.get_category_display }}</p>
+    {% else %}
+        <p><strong>Category:</strong> Not specified</p>
     {% endif %}
 
     {% if listing.image %}
-        <img src="{{ listing.image }}" alt="{{ listing.title }}" class="img-thumbnail">
+        <img class="listing-image" src="{{ listing.image }}" alt="{{ listing.title }}" class="img-thumbnail">
     {% endif %}
 
     <p>Owner: <strong>{{ listing.owner.username }}</strong></p>
@@ -31,41 +33,50 @@
         {% if user != listing.owner %} <!-- place bid if not owner -->
         <form action="{% url 'bid' listing_id=listing.id %}" method="POST">
             {% csrf_token %}
+            <div class="form-group">
             <details {% if messages %}open{% endif %}> <!-- expandable section to place bid -->
                 <summary>
                     Place a bid
                 </summary>
                 {% if messages %}
                     {% for message in messages %}
-                        {% if "error" in message.tags %}
-                            <p>{{ message }}</p>
-                        {% elif "success" in message.tags %}
-                            <p>{{ message }}</p>
+                        {% if "failed_bid" in message.tags %}
+                            <p class="alert alert-danger">{{ message }}</p>
+                        {% elif "successful_bid" in message.tags %}
+                            <p class="alert alert-success">{{ message }}</p>
                         {% endif %}
                     {% endfor %}
                 {% endif %}
-                <input type="number" name="bid_amount" placeholder="Enter bid amount" step="0.01" required>
-                <button type="submit">Submit bid</button>
+                <input id="bid_amount" class="form-control" type="number" name="bid_amount" placeholder="Enter bid amount" step="0.01" required>
+                <button class="btn btn-primary" type="submit">Submit bid</button>
             </details>
+            </div>
         </form>
         {% endif %}
         <form action="{% url 'comment' listing_id=listing.id %}" method="POST">
 
             {% csrf_token %}
-            <label for="comment">Add a comment:</label>
+            <label id="comment-label" for="comment">Add a comment:</label>
+                {% if messages %}
+                    {% for message in messages %}
+                        {% if "empty_comment" in message.tags %}
+                            <p class="alert alert-danger">{{ message }}</p>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
             <textarea id="comment" name="comment" placeholder="Input comments here"></textarea>
-            <button type="submit">Upload comment</button>
+            <button id="submit-comment" class="btn btn-primary" type="submit">Upload comment</button>
         </form>
         {% if user not in listing.watchers.all %}
-            <a href="{% url 'add_to_watchlist' listing_id=listing.id %}">Add to Watchlist</a>
+            <a class="toggle-watchlist" href="{% url 'add_to_watchlist' listing_id=listing.id %}">Add to Watchlist</a>
         {% else %}
-            <a href="{% url 'remove_from_watchlist' listing_id=listing.id %}">Remove from Watchlist</a>
+            <a class="toggle-watchlist" href="{% url 'remove_from_watchlist' listing_id=listing.id %}">Remove from Watchlist</a>
         {% endif %}
 
         {% if user == listing.owner %} <!-- close auction if owner -->
             <form action="{% url 'close_listing' listing_id=listing.id %}" method="POST">
                 {% csrf_token %}
-                <button type="submit">Close Auction</button>
+                <button id="close-auction" type="submit">Close Auction</button>
             </form>
         {% endif %}
 
