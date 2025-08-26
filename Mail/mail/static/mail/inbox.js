@@ -53,7 +53,7 @@ function load_mailbox(mailbox) {
         `; // use a click event instead of a new URL since app is single-page style
         // dont need to preventDefault since no <a> involved
         emailElement.addEventListener('click', () => {
-          load_email(email.id); // dont need to pass
+          load_email(email.id, mailbox);
       });
         
         document.querySelector('#emails-view').appendChild(emailElement);
@@ -61,7 +61,7 @@ function load_mailbox(mailbox) {
     })
 }
 
-function load_email(email_id) {
+function load_email(email_id, mailbox) {
 
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'none';
@@ -77,8 +77,8 @@ function load_email(email_id) {
         <p><strong>From:</strong> ${email.sender}</p>
         <p><strong>To:</strong> ${email.recipients.join(', ')}</p>
         <hr>
-        <p>${email.body}</p>
-      `;
+        <div style="white-space: pre-wrap;">${email.body}</div>
+      `; // white-space: pre-wrap preserves line breaks and spaces in body text, as HTML ignores \n
 
       // mark as read automatically after opening
       fetch(`/emails/${email_id}`, {
@@ -86,28 +86,59 @@ function load_email(email_id) {
         body: JSON.stringify({ read: true })
       });
 
-      // add an archive/unarchive button
-      const archiveButton = document.createElement('button');
-      if (email.archived) {
-        archiveButton.innerHTML = 'Unarchive';
-      } else {
-        archiveButton.innerHTML = 'Archive';
-      }
-      archiveButton.addEventListener('click', () => {
-        fetch(`/emails/${email_id}`, {
-          method: 'PUT',
-          body: JSON.stringify({ archived: !email.archived })
-        }) // ! flips the value
-        .then(response => response.json())
-        .then(result => {
-          console.log(result);
-          load_mailbox('inbox');
+      // add an archive/unarchive button for mailboxes except sent
+      if (mailbox !== "sent") {
+        const archiveButton = document.createElement('button');
+      
+        if (email.archived) {
+          archiveButton.innerHTML = 'Unarchive';
+        } else {
+          archiveButton.innerHTML = 'Archive';
+        }
+        archiveButton.addEventListener('click', () => {
+          fetch(`/emails/${email_id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ archived: !email.archived })
+          }) // ! flips the value
+          .then(() => { // no .json() here since views for PUT doesnt return JSON, so the rest of the code can run after promise finishes
+            load_mailbox('inbox');
+          });
         });
-      });
-      document.querySelector('#email-view').appendChild(archiveButton);
-    });
-}
+        document.querySelector('#email-view').appendChild(archiveButton);
 
+        const replyButton = document.createElement('button');
+        replyButton.innerHTML = 'Reply';
+        replyButton.addEventListener('click', () => {
+
+          document.querySelector('#emails-view').style.display = 'none';
+          document.querySelector('#compose-view').style.display = 'block';
+          document.querySelector('#email-view').style.display = 'none';
+
+          // prefill
+
+          document.querySelector('#compose-recipients').value = email.sender;
+          // if subject already starts with Re:, dont add another Re:
+          if (!email.subject.startsWith("Re: ")) {
+            document.querySelector('#compose-subject').value = `Re: ${email.subject}`;
+          } else {
+            document.querySelector('#compose-subject').value = email.subject;
+          }
+          const textarea = document.querySelector('#compose-body');
+
+          // Pre-fill reply template
+          textarea.value = `\n\nOn ${email.timestamp}, ${email.sender} wrote:\n${email.body}`;
+
+          // Focus the textarea
+          textarea.focus();
+
+          // Move cursor to the very beginning (row 1, col 1) so users know where to type
+          textarea.setSelectionRange(0, 0);
+
+        })
+        document.querySelector('#email-view').appendChild(replyButton);
+      }
+    });
+  }
 
 function send_email(event) {
 
