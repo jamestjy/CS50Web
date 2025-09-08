@@ -131,7 +131,7 @@ function load_email(email_id, mailbox) {
           // Focus the textarea
           textarea.focus();
 
-          // Move cursor to the very beginning (row 1, col 1) so users know where to type
+          // Move cursor to the very beginning (row 1, col 1) so users know where to type 
           textarea.setSelectionRange(0, 0);
 
         })
