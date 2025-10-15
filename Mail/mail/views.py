@@ -56,7 +56,7 @@ def compose(request):
     users = set() # set to avoid duplicates
     users.add(request.user) # add 1 element
     users.update(recipients) # add multiple elements from an iterable
-    for user in users:
+    for user in users: # each user gets their own copy of the email so that they can archive, delete, etc. independently
         email = Email(
             user=user,
             sender=request.user,
