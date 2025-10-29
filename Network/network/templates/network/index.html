@@ -1,0 +1,32 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    {% if posts %}
+        <h2>All Posts</h2>
+        <ul class="post-list">
+            {% for post in posts %}
+            
+            <li><a class="post-anchor" href="{% url 'post_detail' post_id=post.id %}">
+                <div class="post">
+                    <strong>{{ post.poster.username }}</strong>
+                    <p>{{ post.content|truncatechars:20 }}</p>
+                    <small>{{ post.timestamp }}</small>
+                    <p>❤️: {{ post.likes.count }}</p>
+                </div>
+            </a></li>
+            
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No posts available.</p>
+    {% endif %}
+
+    <div class="pagination-buttons">
+    {% if posts.has_next %}
+        <a id="next-button" class="btn btn-secondary" href="{% url 'page_index' page_number=posts.next_page_number %}">Next</a>
+    {% endif %}
+    {% if posts.has_previous %}
+        <a id="previous-button" class="btn btn-secondary" href="{% url 'page_index' page_number=posts.previous_page_number %}">Previous</a>
+    {% endif %}
+    </div>
+{% endblock %}

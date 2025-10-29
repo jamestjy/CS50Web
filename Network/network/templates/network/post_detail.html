@@ -1,0 +1,42 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block body %}
+    <div class="post-detail">
+        <input type="hidden" id="csrf-token" value="{{ csrf_token }}"> <!-- csrf token to pass to script-->
+        <h2>Post by <a class="nav-link" href="{% url 'profile' user_id=post.poster.id page_number=1 %}">{{ post.poster.username }}</a></h2>
+        <p id="post-content">{{ post.content }}</p>
+        <small>Posted on: {{ post.timestamp }}</small>
+        {% if request.user.is_authenticated %}
+            {% if request.user in post.likes.all %}
+                <button id="like-button" data-post-id="{{ post.id }}">❤️</button>
+            {% else %}
+                <button id="like-button" data-post-id="{{ post.id }}">🤍</button>
+            {% endif %}
+        {% endif %}
+        <span id="like-count">{{ post.likes.count }}</span> Likes
+
+        {% if request.user == post.poster %}
+        <button id="edit-post-button" data-post-id="{{ post.id }}" class="btn btn-secondary">Edit Post</button >
+        {% endif %}
+        
+        <h3>Comments</h3>
+        {% if post.comments.all %}
+            <ul>
+                {% for comment in post.comments.all %}
+                    <li>
+                        <strong>{{ comment.commenter.username }}</strong> at {{ comment.timestamp }}:
+                        <p>{{ comment.content }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No comments yet.</p>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block page_scripts %}
+    <script src="{% static 'network/edit.js' %}"></script>
+    <script src="{% static 'network/like_toggle.js' %}"></script>
+{% endblock %}

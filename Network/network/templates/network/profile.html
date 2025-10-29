@@ -1,0 +1,42 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    <h2>{{ profile_user.username }}</h2>
+    <p>Followers: {{ profile_user.followers.count }}</p>
+    <p>Following: {{ profile_user.following.count }}</p>
+    {% if request.user != profile_user %}
+        <form method="POST" action="{% url 'follow_toggle' user_id=profile_user.id %}">
+            {% csrf_token %}
+            {% if request.user not in profile_user.followers.all %}
+                <button type="submit" class="btn btn-primary">Follow</button>
+            {% else %}
+                <button type="submit" class="btn btn-danger">Unfollow</button>
+            {% endif %}
+        </form>
+    {% endif %}
+    <h3>Posts:</h3>
+    {% if posts %}
+        <ul>
+            {% for post in posts %}
+                <li><a class="post-anchor" href="{% url 'post_detail' post_id=post.id %}">
+                    <div class="post">
+                        <strong>{{ post.poster.username }}</strong>
+                        <p>{{ post.content|truncatechars:20 }}</p>
+                        <small>{{ post.timestamp }}</small>
+                        <p>❤️: {{ post.likes.count }}</p>
+                    </div>
+                </a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No posts by {{ profile_user.username }}.</p>
+    {% endif %}
+    <div class="pagination-buttons">
+    {% if posts.has_next %}
+        <a id="next-button" class="btn btn-secondary" href="{% url 'profile' user_id=profile_user.id page_number=posts.next_page_number %}">Next</a>
+    {% endif %}
+    {% if posts.has_previous %}
+        <a id="previous-button" class="btn btn-secondary" href="{% url 'profile' user_id=profile_user.id page_number=posts.previous_page_number %}">Previous</a>
+    {% endif %}
+    </div>
+{% endblock %}
